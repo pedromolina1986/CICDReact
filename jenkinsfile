@@ -1,0 +1,20 @@
+pipeline{
+    agent any
+    stages{
+        stage("Build"){
+            agent{
+                docker{
+                    image "v22.20.0"
+                    reuseNode true
+                }
+            }
+            steps{
+                sh '''
+                    ls -la
+                    node --version
+                    npm --version
+                '''
+            }       
+        }
+    }
+}
