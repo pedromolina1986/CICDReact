@@ -14,7 +14,21 @@ pipeline {
                     node --version
                     npm --version
                     npm install
-                    npm run build
+                    npm run build                    
+                '''
+            }       
+        }
+        stage("Test") {
+            agent {
+                docker {
+                    image "node:22"
+                    reuseNode true
+                }
+            }
+            steps {
+                sh '''                                    
+                    test -f build/index.html
+                    npm test
                 '''
             }       
         }
