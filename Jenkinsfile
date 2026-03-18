@@ -1,10 +1,13 @@
 pipeline {
     agent any
+
     environment {
         NETLIFY_SITE_ID = '248c92b0-e710-4a73-8fc7-1378a7390781'
-        myReactAppToken = credentials('myreactapp-netlify')
+        NETLIFY_AUTH_TOKEN = credentials('myreactapp-netlify')
     }
+
     stages {
+
         stage("Build") {
             agent {
                 docker {
@@ -13,15 +16,17 @@ pipeline {
                 }
             }
             steps {
-                sh '''                
-                    ls -la
+                sh '''
+                    echo "=== BUILD STAGE ==="
                     node --version
                     npm --version
-                    npm install
-                    npm run build                    
+
+                    npm ci
+                    npm run build
                 '''
-            }       
+            }
         }
+
         stage("Test") {
             agent {
                 docker {
@@ -30,12 +35,14 @@ pipeline {
                 }
             }
             steps {
-                sh '''                                    
+                sh '''
+                    echo "=== TEST STAGE ==="
                     test -f build/index.html
-                    npm test
+                    npm test -- --watchAll=false
                 '''
-            }       
+            }
         }
+
         stage("Deploy") {
             agent {
                 docker {
@@ -44,14 +51,20 @@ pipeline {
                 }
             }
             steps {
-                sh '''                                                    
-                npm install -g netlify-cli
-                node_modules/.bin/netlify --version
-                echo "$NETLIFY_SITE_ID"
-                node_modules/.bin/netlify status
-                node_modules/.bin/netlify deploy --site=$NETLIFY_SITE_ID --prod --dir=build
+                sh '''
+                    echo "=== DEPLOY STAGE ==="
+
+                    # Run Netlify CLI without global install
+                    npx netlify-cli --version
+
+                    # Deploy to Netlify
+                    npx netlify-cli deploy \
+                        --site=$NETLIFY_SITE_ID \
+                        --auth=$NETLIFY_AUTH_TOKEN \
+                        --prod \
+                        --dir=build
                 '''
-            }       
+            }
         }
     }
 }
