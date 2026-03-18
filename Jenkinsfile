@@ -10,6 +10,7 @@ pipeline {
             }
             steps {
                 sh '''
+                    cd /my-app
                     ls -la
                     node --version
                     npm --version
