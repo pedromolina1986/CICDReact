@@ -1,13 +1,10 @@
 pipeline {
     agent any
-
     environment {
         NETLIFY_SITE_ID = '248c92b0-e710-4a73-8fc7-1378a7390781'
-        NETLIFY_AUTH_TOKEN = credentials('myreactapp-netlify')
+        myReactAppToken = credentials('myreactapp-netlify')
     }
-
     stages {
-
         stage("Build") {
             agent {
                 docker {
@@ -16,17 +13,15 @@ pipeline {
                 }
             }
             steps {
-                sh '''
-                    echo "=== BUILD STAGE ==="
+                sh '''                
+                    ls -la
                     node --version
                     npm --version
-
-                    npm ci
-                    npm run build
+                    npm install
+                    npm run build                    
                 '''
-            }
+            }       
         }
-
         stage("Test") {
             agent {
                 docker {
@@ -35,14 +30,12 @@ pipeline {
                 }
             }
             steps {
-                sh '''
-                    echo "=== TEST STAGE ==="
+                sh '''                                    
                     test -f build/index.html
-                    npm test -- --watchAll=false
+                    npm test
                 '''
-            }
+            }       
         }
-
         stage("Deploy") {
             agent {
                 docker {
@@ -52,19 +45,15 @@ pipeline {
             }
             steps {
                 sh '''
-                    echo "=== DEPLOY STAGE ==="
-
-                    # Run Netlify CLI without global install
                     npx netlify-cli --version
-
-                    # Deploy to Netlify
+                    echo "$NETLIFY_SITE_ID"
                     npx netlify-cli deploy \
-                        --site=$NETLIFY_SITE_ID \
-                        --auth=$NETLIFY_AUTH_TOKEN \
-                        --prod \
-                        --dir=build
+                    --site=$NETLIFY_SITE_ID \
+                    --auth=$myReactAppToken \
+                    --prod \
+                    --dir=build
                 '''
-            }
+            }       
         }
     }
 }
