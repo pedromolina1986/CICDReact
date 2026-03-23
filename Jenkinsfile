@@ -47,9 +47,8 @@ pipeline {
                 sh '''
                     npx netlify-cli --version
                     echo "$NETLIFY_SITE_ID"
-                    npx netlify-cli status --auth=$NETLIFY_AUTH_TOKEN
                     npx netlify-cli deploy \
-                    --site=$NETLIFY_SITE_ID \                    
+                    --site=$NETLIFY_SITE_ID \
                     --prod \
                     --dir=build
                 '''
