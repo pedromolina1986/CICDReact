@@ -4,7 +4,7 @@ pipeline {
         NETLIFY_SITE_ID = '248c92b0-e710-4a73-8fc7-1378a7390781'
         NETLIFY_AUTH_TOKEN = credentials('myreactapp-netlify')
     }
-    stages {
+    /*stages {
         stage("Build") {
             agent {
                 docker {
@@ -49,5 +49,22 @@ pipeline {
             }
             
         }
+    }*/
+    stages{
+        stage("AWS"){
+            agent{
+                docker{
+                    image 'amaazon/aws-cli'
+                    reuseNode true
+                    args '--entrypoint=""'
+                }
+            }
+            steps{
+                sh'''
+                    aws --version
+                    aws s3 ls
+                '''
+            }
+        }       
     }
 }
