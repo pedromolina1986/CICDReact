@@ -43,12 +43,11 @@ pipeline {
                     reuseNode true
                 }
             }
-            stage('Deploy') {
-                steps {
-                    sh 'npx netlify-cli --version'
-                    sh 'npx netlify-cli deploy --dir=build --prod --auth=$NETLIFY_AUTH_TOKEN --site=$NETLIFY_SITE_ID'
-                }
-            } 
+            steps {
+                sh 'npx netlify-cli --version'
+                sh 'npx netlify-cli deploy --dir=build --prod --auth=$NETLIFY_AUTH_TOKEN --site=$NETLIFY_SITE_ID'
+            }
+            
         }
     }
 }
