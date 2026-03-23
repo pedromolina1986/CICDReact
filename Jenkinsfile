@@ -8,7 +8,7 @@ pipeline {
         stage("Build") {
             agent {
                 docker {
-                    image "node:22"
+                    image "node:24.14.0-alpine"
                     reuseNode true
                 }
             }
@@ -25,7 +25,7 @@ pipeline {
         stage("Test") {
             agent {
                 docker {
-                    image "node:22"
+                    image "node:24.14.0-alpine"
                     reuseNode true
                 }
             }
@@ -45,7 +45,7 @@ pipeline {
             }
             steps {
                 sh '''
-                    npx netlify-cli --version
+                    npx netlifycli --version
                     echo "$NETLIFY_SITE_ID"
                     npx netlify-cli deploy \
                     --site=$NETLIFY_SITE_ID \
