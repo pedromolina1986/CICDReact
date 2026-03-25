@@ -56,7 +56,7 @@ pipeline {
                 }
             }
             steps{
-                withCredentials([usernamePassword(credentialsId: 'reactAWS2', passwordVariable: 'AWS_SECRECT_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                withCredentials([usernamePassword(credentialsId: 'reactAWS', passwordVariable: 'AWS_SECRECT_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                     sh'''
                         aws --version
                         aws s3 ls
