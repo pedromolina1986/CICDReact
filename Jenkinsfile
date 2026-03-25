@@ -9,7 +9,7 @@ pipeline {
         stage("AWS") {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'reactAWS2',
+                    credentialsId: 'reactAWS',
                     passwordVariable: 'AWS_SECRET_ACCESS_KEY',
                     usernameVariable: 'AWS_ACCESS_KEY_ID'
                 )]) {
