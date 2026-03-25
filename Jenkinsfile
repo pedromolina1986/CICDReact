@@ -1,26 +1,38 @@
 pipeline {
     agent any
-    
-    stages{
-        stage("AWS"){
-            agent {
-                docker {
-                    image 'amazon/aws-cli'
-                    args '-u root:root'
-                }
-            }
-            steps{
+
+    environment {
+        AWS_CLI_IMAGE = 'amazon/aws-cli:latest'
+    }
+
+    stages {
+        stage("AWS") {
+            steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'reactAWS2',
                     passwordVariable: 'AWS_SECRET_ACCESS_KEY',
                     usernameVariable: 'AWS_ACCESS_KEY_ID'
                 )]) {
-                    sh '''
-                        aws --version
-                        aws s3 ls
-                    '''
-                }                
+                    script {
+                        // Puxa a imagem AWS CLI
+                        sh "docker pull ${AWS_CLI_IMAGE}"
+
+                        // Roda comandos AWS CLI dentro do container
+                        sh """
+                            docker run --rm \
+                                -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+                                -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+                                ${AWS_CLI_IMAGE} aws --version
+                        """
+                        sh """
+                            docker run --rm \
+                                -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+                                -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+                                ${AWS_CLI_IMAGE} aws s3 ls
+                        """
+                    }
+                }
             }
-        }       
+        }
     }
 }
