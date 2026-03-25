@@ -2,7 +2,7 @@ import './App.css';
 
 function App() {
   return (
-    <h1>CI/CD Test</h1>
+    <h1>Pedro Molina - S3 CICD</h1>
   );
 }
 
