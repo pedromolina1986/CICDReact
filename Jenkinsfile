@@ -1,3 +1,4 @@
+// Jenkinsfile para executar comandos AWS CLI usando Docker
 pipeline {
     agent any
 
