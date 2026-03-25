@@ -1,4 +1,3 @@
-// Jenkinsfile atualizado para executar comandos AWS CLI usando Docker
 pipeline {
     agent any
 
@@ -18,20 +17,12 @@ pipeline {
                         // Puxa a imagem AWS CLI
                         sh "docker pull ${AWS_CLI_IMAGE}"
 
-                        // Roda aws --version
+                        // Roda aws --version dentro do container usando /bin/sh -c
                         sh """
                             docker run --rm \
-                                -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-                                -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-                                ${AWS_CLI_IMAGE} aws --version
-                        """
-
-                        // Lista buckets S3
-                        sh """
-                            docker run --rm \
-                                -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-                                -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-                                ${AWS_CLI_IMAGE} s3 ls
+                                -e AWS_ACCESS_KEY_ID="\$AWS_ACCESS_KEY_ID" \
+                                -e AWS_SECRET_ACCESS_KEY="\$AWS_SECRET_ACCESS_KEY" \
+                                ${AWS_CLI_IMAGE} /bin/sh -c "aws --version && aws s3 ls"
                         """
                     }
                 }
