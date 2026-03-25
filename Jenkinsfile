@@ -1,68 +1,74 @@
 pipeline {
-    agent any    
-    /*stages {
+    agent any
+
+    environment {
+        S3_BUCKET = "s3-images-test"
+        AWS_DEFAULT_REGION = "us-east-2"
+    }
+
+    stages {
+
         stage("Build") {
             agent {
                 docker {
-                    image "node:24.14.0-alpine"
+                    image "node:24-alpine"
                     reuseNode true
                 }
             }
             steps {
-                sh '''                
-                    ls -la
+                sh '''
                     node --version
                     npm --version
                     npm install
-                    npm run build                    
+                    npm run build
                 '''
-            }       
+            }
         }
+
         stage("Test") {
             agent {
                 docker {
-                    image "node:24.14.0-alpine"
+                    image "node:24-alpine"
                     reuseNode true
                 }
             }
             steps {
-                sh '''                                    
+                sh '''
                     test -f build/index.html
-                    npm test
+                    echo "Build OK"
                 '''
-            }       
+            }
         }
-        stage("Deploy") {
+
+        stage("Deploy to S3") {
             agent {
                 docker {
-                    image "node:24.14.0-alpine"
-                    reuseNode true
-                }
-            }
-            steps {
-                sh 'npx netlify-cli --version'
-                sh 'npx netlify-cli deploy --dir=build --prod --auth=$NETLIFY_AUTH_TOKEN --site=$NETLIFY_SITE_ID'
-            }
-            
-        }
-    }*/
-    stages{
-        stage("AWS"){
-            agent{
-                docker{
                     image 'amazon/aws-cli'
                     reuseNode true
                     args '--entrypoint=""'
                 }
             }
-            steps{
-                withCredentials([usernamePassword(credentialsId: 'reactAWS', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
-                    sh'''
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'reactAWS',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    sh '''
                         aws --version
-                        aws s3 ls
+                        aws s3 sync build/ s3://$S3_BUCKET --delete
                     '''
-                }                
+                }
             }
-        }       
+        }
+
+        stage("Show URL") {
+            steps {
+                echo "App deployed to:"
+                echo "http://${S3_BUCKET}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com"
+            }
+        }
     }
 }
