@@ -1,9 +1,5 @@
 pipeline {
-    agent any
-    environment {
-        NETLIFY_SITE_ID = '248c92b0-e710-4a73-8fc7-1378a7390781'
-        NETLIFY_AUTH_TOKEN = credentials('myreactapp-netlify')        
-    }
+    agent any    
     /*stages {
         stage("Build") {
             agent {
