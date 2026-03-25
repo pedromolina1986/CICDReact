@@ -52,12 +52,7 @@ pipeline {
     }*/
     stages{
         stage("AWS"){
-            agent{
-                docker{
-                    image 'amazon/aws-cli'
-                    reuseNode true
-                    args '--entrypoint=""'
-                }
+            agent{                
             }
             steps{
                 withCredentials([usernamePassword(credentialsId: 'reactAWS2', passwordVariable: 'AWS_SECRECT_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
