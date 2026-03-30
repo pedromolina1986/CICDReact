@@ -72,7 +72,7 @@ pipeline {
             }
         }*/
         stages{
-            stage("Deploy too ECS") {
+            stage("Deploy to ECS") {
                 agent {
                     docker {
                         image 'amazon/aws-cli'
