@@ -94,11 +94,5 @@ pipeline {
                     '''
                 }
             }
-        }
-         stage("Show URL") {
-            steps {
-                echo "App deployed to:"
-                echo "http://${ECS_CLUSTER}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com"
-            }
-        }    
+        }          
 }
