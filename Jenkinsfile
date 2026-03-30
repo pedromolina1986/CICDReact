@@ -71,28 +71,36 @@ pipeline {
                 echo "http://${S3_BUCKET}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com"
             }
         }*/
-
-        stage("Deploy too ECS") {
-            agent {
-                docker {
-                    image 'amazon/aws-cli'
-                    reuseNode true
-                    args '--entrypoint=""'
+        stages{
+            stage("Deploy too ECS") {
+                agent {
+                    docker {
+                        image 'amazon/aws-cli'
+                        reuseNode true
+                        args '--entrypoint=""'
+                    }
+                }
+                steps {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'reactAWS',
+                            usernameVariable: 'AWS_ACCESS_KEY_ID',
+                            passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                        )
+                    ]) {
+                        sh '''
+                            aws --version
+                            aws ecs register-task-definition --cli-input-json file://aws/task-definition.json
+                        '''
+                    }
                 }
             }
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'reactAWS',
-                        usernameVariable: 'AWS_ACCESS_KEY_ID',
-                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                    )
-                ]) {
-                    sh '''
-                        aws --version
-                        aws ecs register-task-definition --cli-input-json file://aws/task-definition.json
-                    '''
+            stage("Show URL") {
+                steps {
+                    echo "App deployed to:"
+                    echo "http://${ECS_CLUSTER}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com"
                 }
             }
-        }          
+        }
+    
 }
