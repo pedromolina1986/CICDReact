@@ -6,7 +6,7 @@ pipeline {
         AWS_DEFAULT_REGION = "us-east-2"
     }
 
-    stages {
+    /*stages {
 
         stage("Build") {
             agent {
@@ -68,6 +68,30 @@ pipeline {
             steps {
                 echo "App deployed to:"
                 echo "http://${S3_BUCKET}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com"
+            }
+        }*/
+
+        stage("Deploy too ECS") {
+            agent {
+                docker {
+                    image 'amazon/aws-cli'
+                    reuseNode true
+                    args '--entrypoint=""'
+                }
+            }
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'reactAWS',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    sh '''
+                        aws --version
+                        aws ecs register-task-definition --cli-input-json file://aws/task-definition.json
+                    '''
+                }
             }
         }
     }
