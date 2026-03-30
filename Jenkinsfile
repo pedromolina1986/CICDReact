@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     environment {
-        S3_BUCKET = "s3-images-test"
+        //S3_BUCKET = "s3-images-test"
+        ECS_CLUSTER = "flawless-dolphin-hddo8i"
         AWS_DEFAULT_REGION = "us-east-2"
     }
 
@@ -92,6 +93,12 @@ pipeline {
                         aws ecs register-task-definition --cli-input-json file://aws/task-definition.json
                     '''
                 }
+            }
+        }
+         stage("Show URL") {
+            steps {
+                echo "App deployed to:"
+                echo "http://${ECS_CLUSTER}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com"
             }
         }
     }
