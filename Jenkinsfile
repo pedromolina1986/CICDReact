@@ -90,7 +90,7 @@ pipeline {
                     ]) {
                         sh '''
                             aws --version
-                            aws ecs register-task-definition --cli-input-json file://aws/task-definition.json
+                            # aws ecs register-task-definition --cli-input-json file://aws/task-definition.json
                             aws ecs update-service --cluster $ECS_CLUSTER --service flawless-dolphin-service --task-definition my-react-task-definition:1
                         '''
                     }
