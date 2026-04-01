@@ -6,7 +6,7 @@ pipeline {
         APP_NAME            = 'my-react-app'
         AWS_DEFAULT_REGION  = 'us-east-2'
         ECS_CLUSTER         = 'flawless-dolphin-hddo8i'
-        ECS_SERVICE         = 'my-react-service'   // coloque seu ECS Service
+        ECS_SERVICE         = 'my-react-service'
         ECS_TASK_DEFINITION = 'my-react-task-definition-json'
     }
 
@@ -19,6 +19,12 @@ pipeline {
         }
 
         stage('Build & Push Docker Image') {
+            agent {
+                docker {
+                    image 'amazonlinux:2023'  // imagem base com yum/dnf
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
+                }
+            }
             steps {
                 withCredentials([
                     usernamePassword(
@@ -28,20 +34,31 @@ pipeline {
                     )
                 ]) {
                     sh '''
-                        # Define local Docker config para evitar problemas de permissão
+                        # Instala dependências
+                        dnf install -y tar gzip unzip docker
+
+                        # Instala AWS CLI v2
+                        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                        unzip awscliv2.zip
+                        ./aws/install
+
+                        # Configure Docker config local
                         export DOCKER_CONFIG=$WORKSPACE/.docker
 
                         echo "Docker version:"
                         docker version
 
-                        # Build da imagem
+                        echo "AWS CLI version:"
+                        aws --version
+
+                        # Build Docker image
                         docker build -t $AWS_DOCKER_REGISTRY/$APP_NAME:latest .
 
-                        # Login no ECR
+                        # Login ECR
                         aws ecr get-login-password --region $AWS_DEFAULT_REGION | \
                             docker login --username AWS --password-stdin $AWS_DOCKER_REGISTRY
 
-                        # Push da imagem
+                        # Push image
                         docker push $AWS_DOCKER_REGISTRY/$APP_NAME:latest
                     '''
                 }
@@ -58,8 +75,7 @@ pipeline {
                     )
                 ]) {
                     sh '''
-                        # Atualiza a task definition com a nova imagem
-                        # Assumindo que você já tenha a task definition registrada no ECS
+                        # Atualiza a task definition no ECS
                         NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
                             --cli-input-json file://aws/task-definition.json \
                             --query 'taskDefinition.taskDefinitionArn' \
@@ -67,7 +83,7 @@ pipeline {
 
                         echo "New task definition ARN: $NEW_TASK_DEF_ARN"
 
-                        # Atualiza o service para usar a nova task definition
+                        # Atualiza service ECS
                         aws ecs update-service \
                             --cluster $ECS_CLUSTER \
                             --service $ECS_SERVICE \
@@ -81,8 +97,7 @@ pipeline {
 
         stage('Verify Deployment') {
             steps {
-                echo "Deployment finished. Verify the URL in your browser:"
-                echo "http://${APP_NAME}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com"
+                echo "Deployment finished. Check your ECS service or load balancer."
             }
         }
     }
