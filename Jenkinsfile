@@ -72,17 +72,17 @@ pipeline {
             }
         }*/
         stages{
-            stage("Build My Image") {
+            stage('Build My Image'){
                 agent{
-                    docker {
-                        image "amazon/aws-cli"
+                    docker{
+                        image 'amazon/aws-cli'
                         reuseNode true
-                        args '-u root:root --entrypoint=""'
+                        args '-u root -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=""'
                     }
                 }
-                steps {
+                steps{
                     dnf install -y docker
-                    docker build -y -t my-react-app .
+                    docker build -t my-docker-image .
                     docker images
                 }
             }
