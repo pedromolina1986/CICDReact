@@ -18,10 +18,27 @@ pipeline {
             }
         }
 
+        stage('Build React App') {
+            agent {
+                docker {
+                    image 'node:24-alpine'
+                    args '-u root'
+                }
+            }
+            steps {
+                sh '''
+                    node --version
+                    npm --version
+                    npm install
+                    npm run build
+                '''
+            }
+        }
+
         stage('Build & Push Docker Image') {
             agent {
                 docker {
-                    image 'amazonlinux:2023'  // imagem base com yum/dnf
+                    image 'amazonlinux:2023'
                     args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
                 }
             }
@@ -35,7 +52,7 @@ pipeline {
                 ]) {
                     sh '''
                         # Instala dependências
-                        dnf install -y tar gzip unzip docker
+                        dnf install -y tar gzip unzip docker curl
 
                         # Instala AWS CLI v2
                         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -47,7 +64,6 @@ pipeline {
 
                         echo "Docker version:"
                         docker version
-
                         echo "AWS CLI version:"
                         aws --version
 
@@ -75,21 +91,14 @@ pipeline {
                     )
                 ]) {
                     sh '''
-                        # Atualiza a task definition no ECS
                         NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
                             --cli-input-json file://aws/task-definition.json \
                             --query 'taskDefinition.taskDefinitionArn' \
                             --output text)
-
-                        echo "New task definition ARN: $NEW_TASK_DEF_ARN"
-
-                        # Atualiza service ECS
                         aws ecs update-service \
                             --cluster $ECS_CLUSTER \
                             --service $ECS_SERVICE \
                             --task-definition $NEW_TASK_DEF_ARN
-
-                        echo "ECS Service updated!"
                     '''
                 }
             }
